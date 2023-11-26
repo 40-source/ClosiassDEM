@@ -6,9 +6,14 @@
 #include <random>
 #include <cmath>
 #include <algorithm>
+#include <filesystem>
+#include <iostream>
+#include <fstream>
 
+namespace fs = std::filesystem;
 using namespace std;
 constexpr double PI = 3.14159265359; 
+
 typedef struct{ 
   float x; 
   float y; 
@@ -63,7 +68,7 @@ void combustible(vector<vec3> &comb, float rayon, float hauteur, float nbNoyaudt
   v.y = 0;
   v.z = hauteur/2;
   comb.push_back(v);
-  int k = 0;
+  int k = 1;
   while (k < n) {
     int i = 0;
     float angle = 2 * PI / (nbNoyaudtau * k);
@@ -108,12 +113,15 @@ void distance(vector<float> &dist, vector<vec3> &coordonne, vec3 point){
 void DesintegrationAux(vector <vec3> &positions, vector<float> &temps){
   int dmin = 3;
   int bulle_max = 30;
-  vector <float> dist;
   for (int i = 0; i < positions.size(); i++) {
-    distance(dist, positions, positions[i]);
     int counter = 0; 
-    for (int j = 0; j < dist.size(); j++) {
-      if (dist[j] > 0 && dist[j] <= dmin){
+    for (int j = 0; j < positions.size(); j++ ) {
+      float s = 0;
+      s += pow(positions[j].x - positions[i].x, 2.f);
+      s += pow(positions[j].y - positions[i].y, 2.f);
+      s += pow(positions[j].z - positions[i].z, 2.f);
+      s = sqrt(s);
+      if (s > 0 && s <= dmin){
         counter++;
         if (counter > bulle_max){
           temps[j] = std::numeric_limits<float>::max();
@@ -123,18 +131,17 @@ void DesintegrationAux(vector <vec3> &positions, vector<float> &temps){
   }
 }
 
-void Desintegration(vector<vec3> &positionsNew, vector<vec3> &vitessesNew, vector<float> &tempsNew, const vector<vec3> &positions, const vector<vec3> &vitesses, const vector<float> &temps, float dinf, float hauteur){
-    float AgeFermi = 400.f;
+void Desintegration(vector<vec3> &positionsNew, vector<vec3> &vitessesNew, vector<float> &tempsNew, vector<vec3> &positions, vector<vec3> &vitesses, vector<float> &temps, float dinf, float hauteur){
+    float AgeFermi = 2.f;
+    
+    DesintegrationAux(positions, temps);
+
+    
 
     for (int i = 0; i < positions.size(); i++) {
-        vec3 PointCentre;
-        PointCentre.x = 0;
-        PointCentre.y = 0;
-        PointCentre.z = hauteur / 2;
-        
-        float dist = pow(positions[i].x - PointCentre.x, 2.f) +
-                     pow(positions[i].y - PointCentre.y, 2.f) +
-                     pow(positions[i].z - PointCentre.z, 2.f);
+        float dist = pow(positions[i].x, 2.f) +
+                     pow(positions[i].y, 2.f) +
+                     pow(positions[i].z - hauteur / 2, 2.f);
 
         if (temps[i] < AgeFermi && sqrt(dist) < dinf) {
             positionsNew.push_back(positions[i]);
@@ -153,26 +160,34 @@ void fission(vector<vec3> &positions, vector<vec3> &vitesses, vector<float> &tem
   std::random_device rd;
   std::mt19937 gen(rd());
   float v0 = 1.8f;
-  float m = 0.1;
-  for (int i = 0; i < positions.size(); i++) {
-    vector<float> dist;
+  float m = 0.2;
+  float max = positions.size();
+  for (int i = 0; i < max; i++) {
     vector<float> nearbyindices;
     
-    distance(dist, comb, positions[i]);
-    
-    for (int j = 0; j < dist.size(); i++) {
-      if (dist[i] <= rayon) {
-        nearbyindices.push_back(dist[i]);  
+    float noyau = 0;
+    float min = std::numeric_limits<float>::max();
+
+    for (int j = 0; j < comb.size(); j++) {
+      float s = 0;
+      s += pow(comb[j].x - positions[i].x, 2.f);
+      s += pow(comb[j].y - positions[i].y, 2.f);
+      s += pow(comb[j].z - positions[i].z, 2.f);
+      s = sqrt(s);
+      if(s < rayon){
+        nearbyindices.push_back(s);
+      }
+      if(s < min){
+        noyau = j;
+        min = s;
       }
     }
     if (nearbyindices.size() != 0) {
-      auto min = std::min_element(nearbyindices.begin(), nearbyindices.end());
-      int noyau = std::distance(nearbyindices.begin(), min);
     
       float Ec = pow(vitesses[i].x, 2.0f) +
                  pow(vitesses[i].y, 2.0f) +
                  pow(vitesses[i].z, 2.0f);
-      Ec = Ec * m;
+      Ec = Ec * m / 2;
       float R;
       if (Ec < v0){
         R = 0;
@@ -185,96 +200,108 @@ void fission(vector<vec3> &positions, vector<vec3> &vitesses, vector<float> &tem
         temps[i] = std::numeric_limits<float>::max();
       } else{
         std::normal_distribution<double> normalDist2(-1, 1);
-        positions[i].x *= normalDist2(gen);
-        positions[i].y *= normalDist2(gen);
-        positions[i].z *= normalDist2(gen);
+        vitesses[i].x *= normalDist2(gen);
+        vitesses[i].y *= normalDist2(gen);
+        vitesses[i].z *= normalDist2(gen);
         temps[i] = 0.f;
       }
     }
   }
 }
-void cycle(int n, float t, float rayon, vector<vec3> &positions, vector<vec3> &vitesses, vector<float> &temps, vector<vec3> &comb, float dinf, float hauteur, string dossier);
 
-/*
-void Desintegration(vector<vec3> &positionsNew, vector<vec3> &vitessesNew, vector<float> &tempsNew, vector<vec3> &positions, vector<vec3> &vitesses, vector<float> &temps, float dinf, float hauteur){
-  float AgeFermi = 2.f;
-  DesintegrationAux(positions, temps);
-  
-  vec3 PointCentre;
-  
-  PointCentre.x = 0;
-  PointCentre.y = 0;
-  PointCentre.z = hauteur/2;
-  
-  vector<float> dist;
-  distance(dist, positions, PointCentre);
-  
-  for (int i = 0; i < positions.size(); i++) {  
-    if (temps[i] < AgeFermi && dist[i] < dinf){
-      positionsNew.push_back(positions[i]);
-      vitessesNew.push_back(vitesses[i]);
-      tempsNew.push_back(temps[i]);
+void ecrireDansFichier(const std::string& dossier, const std::string& name, std::vector<vec3>& vect) {
+    // Définir le chemin du fichier
+    std::string cheminFichier = "./" + dossier + "/" + name + ".csv";
+
+    // Créer le dossier s'il n'existe pas
+    if (!fs::exists(dossier)) {
+        fs::create_directory(dossier);
     }
+
+    // Ouvrir le fichier en mode écriture
+    std::ofstream fichier(cheminFichier);
+
+    // Vérifier si le fichier est ouvert avec succès
+    if (fichier.is_open()) {
+        // Écrire les en-têtes
+        fichier << "x,y,z" << std::endl;
+
+        // Écrire les données dans le fichier
+        for (const auto& ligne : vect) {
+            // Écrire chaque composant de vec3 séparément
+            fichier << ligne.x << "," << ligne.y << "," << ligne.z << std::endl;
+        }
+
+        // Fermer le fichier
+        fichier.close();
+    } else {
+        std::cerr << "Erreur : Impossible d'ouvrir le fichier." << std::endl;
+    }
+}
+
+void cycle(int n, float t, float rayon, vector<vec3> &positions, vector<vec3> &vitesses, vector<float> &temps, vector<vec3> &comb, float dinf, float hauteur, string dossier){
+  ecrireDansFichier(dossier, "comb", comb);
+  vector<vec3> positionsNew;
+  vector<vec3> vitessesNew;
+  vector<float> tempsNew;
+  for (int i = 0; i < n; i++) {
+    cout << i << "/" << n << "->" << positions.size() << endl;
+    deplacement(positions, vitesses, temps, t);
+    fission(positions, vitesses, temps, comb, rayon);
+    moderation(vitesses, t);
+
+    positionsNew.clear();
+    vitessesNew.clear();
+    tempsNew.clear();
+
+    Desintegration(positionsNew, vitessesNew, tempsNew, positions, vitesses, temps, dinf, hauteur);
+
+    positions.resize(positionsNew.size());
+    vitesses.resize(vitessesNew.size());
+    temps.resize(tempsNew.size());
+    
+    positions = positionsNew;
+    vitesses = vitessesNew;
+    temps = tempsNew;
+
+    ecrireDansFichier(dossier, to_string(i), positions);
   }
 }
-*/
 
 
 int main(int argc, char* argv[]) {
+    if (argc != 9) {
+        std::cerr << "Usage: " << argv[0] << " <n> <t> <r> <rep> <uma> <h> <b> <e>" << std::endl;
+        return 1;
+    }
+
+    int N = 100;
+    double n = std::stod(argv[1]);
+    double t = std::stod(argv[2]);
+    double rayon = std::stod(argv[3]);
+    double rep = std::stod(argv[4]);
+    double uma = std::stod(argv[5]);
+    double h = std::stod(argv[6]);
+    double b = std::stod(argv[7]);
+    double e = std::stod(argv[8]);
+
+    std::ostringstream oss;
+    oss << n << t << rayon << rep << uma << h << b << e;
+    std::string dossier = oss.str();
+
     vec3 p0;
-    int N = 10;
     p0.x = 0.f;
     p0.y = 0.f;
-    p0.z = 1.f;
+    p0.z = h/2;
+
     vector<vec3> positions;
     vector<vec3> vitesses;
     vector<float> temps;
     vector<vec3> comb; 
+
     neutronvect(N, positions, vitesses, temps, p0);
-    combustible(comb, 1.f, 2.f,6.f , 2.f, 3);
-    vector<vec3> positionsNew;
-    vector<vec3> vitessesNew;
-    vector<float> tempsNew;
-  
+    combustible(comb, rayon, h, b, e, rep);
 
-    for (int i = 0; i < 12 ; i++){
-
-    // Affichage des résultats pour les premières particules
-    /*
-    for (int i = 0; i < 10; ++i) {
-        cout << "Particule " << i << " - Position : (" << positions[i].x << ", " << positions[i].y << ", " << positions[i].z << ")" << endl;
-        cout << "Particule " << i << " - Vitesse : (" << vitesses[i].x << ", " << vitesses[i].y << ", " << vitesses[i].z << ")" << endl;
-        cout << "Particule " << i << " - Temps : " << temps[i] << endl;
-    }
-    */
-    moderation(vitesses, 2.1f);
-    /*
-    for (size_t i = 0; i < positions.size(); ++i) {
-        std::cout << "Nouvelle position " << i << ": (" << positions[i].x << ", " << positions[i].y << ", " << positions[i].z << ")" << std::endl;
-        std::cout << "Nouveau temps " << i << ": " << temps[i] << std::endl;
-        std::cout << "Nouvelle vitesse " << i << ": (" << vitesses[i].x << ", " << vitesses[i].y << ", " << vitesses[i].z << ")" << std::endl;
-    }
-    */
-    //deplacement(positions, vitesses, temps, 2.1f);
-    /*
-    for (size_t i = 0; i < positions.size(); ++i) {
-        std::cout << "Nouvelle position " << i << ": (" << positions[i].x << ", " << positions[i].y << ", " << positions[i].z << ")" << std::endl;
-        std::cout << "Nouveau temps " << i << ": " << temps[i] << std::endl;
-    }
-    */
-
-    
-    }
-    for (int i = 0; i < 1; i++) {
-        Desintegration(positionsNew, vitessesNew, tempsNew, positions, vitesses, temps, 1000.f, 1.f);
-
-        // For debugging purposes, print the size of positionsNew after each iteration
-        //cout << "Iteration " << i << " - PositionsNew size: " << positionsNew.size() << endl;
-
-        // Further processing or output if needed
-    }
+    cycle(n, t, uma, positions, vitesses, temps, comb, rayon*rep, h, dossier);
     return 0;
 }
-
-
-
