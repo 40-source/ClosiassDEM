@@ -9,6 +9,8 @@
 #include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -23,6 +25,22 @@ typedef struct{
 float norm(vec3 v){
   return sqrt(pow(v.x, 2) + pow(v.y, 2) + pow(v.z, 2));
 }
+
+std::string formatNumber(double number, int precision = 1, char separator = ',') {
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(precision) << number;
+
+    std::string formattedNumber = oss.str();
+
+    size_t pos = formattedNumber.find('.');
+    while (pos != std::string::npos && pos > 3) {
+        formattedNumber.insert(pos - 3, 1, separator);
+        pos = formattedNumber.find('.', pos + 1);
+    }
+
+    return formattedNumber;
+}
+
 
 void neutronvect(int n, vector<vec3> &positions, vector<vec3> &vitesses , vector<float> &temps , vec3 NouvellePosition){
   random_device rd;
@@ -99,16 +117,6 @@ void combustible(vector<vec3> &comb, float rayon, float hauteur, float nbNoyaudt
   k++;
   }
 }
-void distance(vector<float> &dist, vector<vec3> &coordonne, vec3 point){
-    for (int j = 0; j < coordonne.size(); j++ ) {
-      float s = 0;
-      s += pow(coordonne[j].x - point.x, 2.f);
-      s += pow(coordonne[j].y - point.y, 2.f);
-      s += pow(coordonne[j].z - point.z, 2.f);
-      dist.push_back(sqrt(s));
-    }
-}
-
 
 void DesintegrationAux(vector <vec3> &positions, vector<float> &temps){
   int dmin = 3;
@@ -270,7 +278,7 @@ void cycle(int n, float t, float rayon, vector<vec3> &positions, vector<vec3> &v
     sommeK += positions.size()/tmp;
     tmp = positions.size();
 
-    ecrireDansFichier(dossier, to_string(i), positions);
+    ecrireDansFichier(dossier, to_string(i+1), positions);
   }
 }
 
@@ -292,7 +300,7 @@ int main(int argc, char* argv[]) {
     double e = std::stod(argv[8]);
 
     std::ostringstream oss;
-    oss << n << t << rayon << rep << uma << h << b << e;
+    oss << formatNumber(n) << formatNumber(t) << formatNumber(rayon) << formatNumber(rep) << formatNumber(uma) << formatNumber(h) << formatNumber(b) << formatNumber(e);
     std::string dossier = oss.str();
 
     vec3 p0;
