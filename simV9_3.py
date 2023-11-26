@@ -68,14 +68,13 @@ def fission(ata0, ata1, ata2, comb, r):
         distances = np.linalg.norm(comb - ata0[i], axis=1)
         nearby_indices = np.where(distances <= r)[0]
         if nearby_indices.size == 0:
-            i += 1
             continue
         noyau = np.argmin(distances)
         Ec=np.sum(ata1[i]**2)*m
         if Ec < V0:
             R=0
         else:
-            R=((np.sqrt(Ec)-np.sqrt(Ec)*np.sqrt(Ec-V0))/(np.sqrt(Ec)+np.sqrt(Ec)*np.sqrt(Ec-V0)))**2
+           R=(1-np.sqrt(Ec-V0))/(1+np.sqrt(Ec-V0))**2
 
         if(rd.normal(0,1)>R):
             ata0, ata1, ata2 = neutronvect(3, ata0, ata1, ata2, comb[noyau])
