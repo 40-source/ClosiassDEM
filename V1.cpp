@@ -244,8 +244,11 @@ void cycle(int n, float t, float rayon, vector<vec3> &positions, vector<vec3> &v
   vector<vec3> positionsNew;
   vector<vec3> vitessesNew;
   vector<float> tempsNew;
+  float sommeK = 1;
+  float tmp = positions.size();
   for (int i = 0; i < n; i++) {
     cout << i << "/" << n << "->" << positions.size() << endl;
+    cout << "keff = " << sommeK/(i+1) << endl;
     deplacement(positions, vitesses, temps, t);
     fission(positions, vitesses, temps, comb, rayon);
     moderation(vitesses, t);
@@ -263,6 +266,9 @@ void cycle(int n, float t, float rayon, vector<vec3> &positions, vector<vec3> &v
     positions = positionsNew;
     vitesses = vitessesNew;
     temps = tempsNew;
+
+    sommeK += positions.size()/tmp;
+    tmp = positions.size();
 
     ecrireDansFichier(dossier, to_string(i), positions);
   }
