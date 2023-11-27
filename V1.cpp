@@ -169,7 +169,8 @@ void fission(vector<vec3> &positions, vector<vec3> &vitesses, vector<float> &tem
   std::mt19937 gen(rd());
   float v0 = 1.8f;
   float m = 0.2;
-  for (int i = 0; i < positions.size(); i++) {
+  float max = positions.size();
+  for (int i = 0; i < max; i++) {
     vector<float> nearbyindices;
     
     float noyau = 0;
