@@ -62,7 +62,7 @@ if(isset($_POST['n'])&&isset($_POST['t'])&&isset($_POST['r'])&&isset($_POST['uma
     <ul class="source-list">
         <li class="source-list-item">
             <img src="../dem/fr.png" alt="Logo de sources françaises" height="50" class="source-img">
-            <div class="source-name">PÉRENNOU Kaourant, Commissariat à l'énergie atomique (CEA)<br>HUTIN Gérémy, École normale supérieure de Lyon (ENS)<br> aprt. Orano Framatome EDF TechnicAtome</div>
+            <div class="source-name">PÉRENNOU Kaourant, Commissariat à l'énergie atomique (CEA)<br>HUTIN Gérémy, École normale supérieure de Lyon (ENS)<br>BARRANGER, Noé, Télécom Saint-Étienne (TSE)<br>aprt. Orano Framatome EDF TechnicAtome</div>
         </li>
         <li class="source-list-item">
             <img src="../dem/sn.png" alt="Logo de sources chinoises" height="50" class="source-img">
