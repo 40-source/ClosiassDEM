@@ -1,6 +1,6 @@
-# ClossiassDEM
+# ClosiassDEM
 
-Clossias is a nuclear simulation for the Monte Carlo resolution of the Boltzmann equation in neutronics.
+Closiass is a nuclear simulation for the Monte Carlo resolution of the Boltzmann equation in neutronics.
 
 ## Compilation in C++:
 
