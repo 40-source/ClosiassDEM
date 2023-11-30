@@ -6,11 +6,11 @@ Closiass is a nuclear simulation for the Monte Carlo resolution of the Boltzmann
 
 For standard simulation:
 ```bash
-g++ -Ofast V1.cpp -o DEM
+g++ -Ofast -march=native V1.cpp -o DEM
 ```
 For large simulations:
 ```bash
-g++ -Ofast -fopenmp -std=c++17 V2.cpp -o DEMV2
+g++ -Ofast -fopenmp -march=native V2.cpp -o DEMV2
 ```
 You can add -std=c++17 for better compatibility.
 
