@@ -81,12 +81,10 @@ def desintegration(data, box_limits, age_fermi=2):
     # limite sur la densité local des neutrons
     dmin = 3
     maximum = 50
+    distances = cdist(data[:, 1:4], data[:, 1:4])
     for i in range(len(data)):
-        distances = np.ravel(cdist(data[:, 1:4],
-                                   data[np.newaxis, i, 1:4]))
-
-        nearby = np.argwhere((distances <= dmin)&(
-                              distances > 0))[:, 0]
+        nearby = np.argwhere((distances[i] <= dmin)&(
+                              distances[i] > 0))[:, 0]
 
         if nearby.shape[0] > maximum:
             data[nearby[(maximum-1):]] = np.inf
