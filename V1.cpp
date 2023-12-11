@@ -106,6 +106,11 @@ void combustible(vector<vec3> &comb, float rayon, float hauteur, float nbNoyaudt
           nv.x = normalDistx(gen);
           std::normal_distribution<double> normalDisty(y, 1);
           nv.y = normalDisty(gen);
+          //Ou en uniforme
+          //std::uniform_real_distribution<double> uniformDistx(x - 1, x + 1);
+          //nv.x = uniformDistx(gen);
+          //std::uniform_real_distribution<double> uniformDisty(y - 1, y + 1);
+          //nv.y = uniformDisty(gen);
           nv.z = j;
           comb.push_back(nv);
         m++;
